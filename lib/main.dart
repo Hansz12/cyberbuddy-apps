@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'cubits/profile_cubit.dart';
-import 'screens/login_screen.dart';
+import 'screens/splash_screen.dart';
 
 Future<void> main() async {
   // Required for Firebase initialization
@@ -33,11 +33,13 @@ class CyberBuddyApp extends StatelessWidget {
           primaryColor: const Color(0xFF3F51B5),
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF3F51B5),
+            brightness: Brightness.light,
             primary: const Color(0xFF3F51B5),
           ),
+          scaffoldBackgroundColor: const Color(0xFFF8F9FE),
           useMaterial3: true,
         ),
-        home: const LoginScreen(),
+        home: const SplashScreen(),
       ),
     );
   }

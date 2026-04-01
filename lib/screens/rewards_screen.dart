@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../cubits/profile_cubit.dart';
 import '../data/badge_data.dart';
 
 class RewardsScreen extends StatelessWidget {
-  const RewardsScreen({Key? key}) : super(key: key);
+  const RewardsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +13,7 @@ class RewardsScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8F9FE),
       appBar: AppBar(
         title: const Text(
-          "Rewards Vault",
+          'Rewards Vault',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -21,24 +22,20 @@ class RewardsScreen extends StatelessWidget {
       ),
       body: BlocBuilder<ProfileCubit, ProfileState>(
         builder: (context, state) {
-          // In a real app, 'unlockedBadges' would come from your state.
-          // For the demo, let's say they unlock 'first_step' once points > 0
           final List<String> unlockedBadgeIds = state.points > 0
               ? ['first_step']
               : [];
           if (state.level >= 2) unlockedBadgeIds.add('phishing_scout');
 
           return Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Rank Card
                 _buildRankCard(state.level),
                 const SizedBox(height: 32),
-
                 const Text(
-                  "Achievement Badges",
+                  'Achievement Badges',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -46,17 +43,15 @@ class RewardsScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // 2. Badges Grid
                 Expanded(
                   child: GridView.builder(
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
-                          childAspectRatio: 0.85,
-                        ),
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      childAspectRatio: 0.85,
+                    ),
                     itemCount: allAvailableBadges.length,
                     itemBuilder: (context, index) {
                       final badge = allAvailableBadges[index];
@@ -74,7 +69,7 @@ class RewardsScreen extends StatelessWidget {
   }
 
   Widget _buildRankCard(int level) {
-    String rankTitle = level < 3 ? "Cyber Novice" : "Digital Guardian";
+    final rankTitle = level < 3 ? 'Cyber Novice' : 'Digital Guardian';
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -86,7 +81,7 @@ class RewardsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3F51B5).withOpacity(0.3),
+            color: const Color(0xFF3F51B5).withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -108,9 +103,9 @@ class RewardsScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                "Level $level Security Analyst",
+                'Level $level Security Analyst',
                 style: TextStyle(
-                  color: Colors.white.withOpacity(0.8),
+                  color: Colors.white.withValues(alpha: 0.8),
                   fontSize: 14,
                 ),
               ),
@@ -128,7 +123,7 @@ class RewardsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -142,7 +137,7 @@ class RewardsScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: badge.color.withOpacity(0.1),
+                color: badge.color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(badge.icon, color: badge.color, size: 32),
@@ -155,7 +150,7 @@ class RewardsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 8),
               child: Text(
                 badge.description,
                 textAlign: TextAlign.center,
@@ -164,7 +159,7 @@ class RewardsScreen extends StatelessWidget {
             ),
             if (!isUnlocked)
               const Padding(
-                padding: EdgeInsets.only(top: 8.0),
+                padding: EdgeInsets.only(top: 8),
                 child: Icon(
                   Icons.lock_outline_rounded,
                   size: 16,

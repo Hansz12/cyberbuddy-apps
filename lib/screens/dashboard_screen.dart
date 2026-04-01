@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubits/profile_cubit.dart';
 import '../data/module_data.dart';
-import '../data/rewards_screen.dart';
+import 'rewards_screen.dart';
 import 'module_content_screen.dart';
 import 'quiz_screen.dart';
 
@@ -11,29 +11,96 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
-      body: BlocBuilder<ProfileCubit, ProfileState>(
-        builder: (context, state) {
-          // Content-Based Recommendation Logic: Filter modules based on user weaknesses
-          final recommended = allCyberModules
-              .where((m) => state.weaknesses.contains(m.tag))
-              .toList();
-          final otherModules = allCyberModules
-              .where((m) => !state.weaknesses.contains(m.tag))
-              .toList();
+    return BlocBuilder<ProfileCubit, ProfileState>(
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8F9FE),
+          body: Column(
+            children: [
+              _buildDynamicHeader(context, state),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    const Text(
+                      'Learning Path',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2D3142),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ...allCyberModules.map(
+                      (m) => _buildModuleCard(context, m, state),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const QuizScreen()),
+            ),
+            backgroundColor: const Color(0xFF3F51B5),
+            icon: const Icon(Icons.play_arrow_rounded, color: Colors.white),
+            label: const Text(
+              'Start Daily Mission',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
-          return CustomScrollView(
-            slivers: [
-              // 1. Premium Visual Header (Gamification & Stats)
-              SliverAppBar(
-                expandedHeight: 240.0,
-                floating: false,
-                pinned: true,
-                elevation: 0,
-                backgroundColor: const Color(0xFF3F51B5),
-                actions: [
-                  IconButton(
+  Widget _buildDynamicHeader(BuildContext context, ProfileState state) {
+    const xpGoal = 500;
+    final xpProgress = (state.points / xpGoal).clamp(0.0, 1.0);
+
+    return Container(
+      padding: EdgeInsets.only(
+        top: MediaQuery.paddingOf(context).top + 16,
+        bottom: 30,
+        left: 24,
+        right: 24,
+      ),
+      decoration: const BoxDecoration(
+        color: Color(0xFF3F51B5),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Expanded(
+                child: SizedBox(width: 48),
+              ),
+              const Expanded(
+                flex: 4,
+                child: Text(
+                  'CyberBuddy',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
                     icon: const Icon(
                       Icons.emoji_events_outlined,
                       color: Colors.white,
@@ -45,119 +112,84 @@ class DashboardScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                ],
-                flexibleSpace: FlexibleSpaceBar(
-                  background: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF3F51B5), Color(0xFF5C6BC0)],
-                      ),
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(32),
-                        bottomRight: Radius.circular(32),
-                      ),
-                    ),
-                    child: SafeArea(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text(
-                            "CyberBuddy",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _buildStatCircle(
-                                "Level",
-                                state.level.toString(),
-                                Icons.trending_up,
-                              ),
-                              const SizedBox(width: 48),
-                              _buildStatCircle(
-                                "XP Points",
-                                state.points.toString(),
-                                Icons.bolt,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // 2. Main Content Sections
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Section A: Adaptive Recommendations (The FYP Logic)
-                      if (recommended.isNotEmpty) ...[
-                        _buildSectionHeader("Priority Missions", isAlert: true),
-                        const SizedBox(height: 16),
-                        ...recommended.map(
-                          (m) =>
-                              _buildModuleCard(context, m, isRecommended: true),
-                        ),
-                        const SizedBox(height: 32),
-                      ],
-
-                      // Section B: Standard Learning Path
-                      _buildSectionHeader("Learning Path"),
-                      const SizedBox(height: 16),
-                      if (otherModules.isEmpty && recommended.isEmpty)
-                        const Center(child: Text("No modules available."))
-                      else
-                        ...otherModules.map(
-                          (m) => _buildModuleCard(context, m),
-                        ),
-                    ],
-                  ),
                 ),
               ),
             ],
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const QuizScreen()),
-        ),
-        icon: const Icon(Icons.play_arrow_rounded),
-        label: const Text("Start Daily Mission"),
-        backgroundColor: const Color(0xFF3F51B5),
-        foregroundColor: Colors.white,
-        elevation: 4,
+          ),
+          const SizedBox(height: 30),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildHeaderStat(
+                'LEVEL',
+                state.level.toString(),
+                Icons.trending_up,
+                Colors.lightBlueAccent,
+              ),
+              _buildHeaderStat(
+                'XP POINTS',
+                state.points.toString(),
+                Icons.bolt,
+                Colors.amber,
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Next level',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                    Text(
+                      '${state.points}/$xpGoal XP',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: xpProgress,
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    color: Colors.amber,
+                    minHeight: 6,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStatCircle(String label, String value, IconData icon) {
+  Widget _buildHeaderStat(
+    String label,
+    String value,
+    IconData icon,
+    Color iconColor,
+  ) {
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
-          ),
-          child: Icon(icon, color: Colors.amber, size: 30),
+        CircleAvatar(
+          backgroundColor: Colors.white.withValues(alpha: 0.15),
+          child: Icon(icon, color: iconColor),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
           value,
           style: const TextStyle(
@@ -168,9 +200,9 @@ class DashboardScreen extends StatelessWidget {
         ),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 13,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 11,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -178,127 +210,72 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title, {bool isAlert = false}) {
-    return Row(
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2D3142),
-          ),
-        ),
-        if (isAlert) ...[
-          const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: const Text(
-              "ADAPTIVE",
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
   Widget _buildModuleCard(
     BuildContext context,
-    CyberModule m, {
-    bool isRecommended = false,
-  }) {
+    CyberModule m,
+    ProfileState state,
+  ) {
+    final isCompleted = state.points > 100;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 18),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 15,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 8),
           ),
         ],
-        border: isRecommended
-            ? Border.all(color: Colors.red.withOpacity(0.2), width: 1.5)
-            : Border.all(color: Colors.transparent, width: 1.5),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ModuleContentScreen(module: m),
-              ),
-            );
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isRecommended
-                        ? Colors.red.withOpacity(0.1)
-                        : const Color(0xFF3F51B5).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    isRecommended
-                        ? Icons.priority_high_rounded
-                        : Icons.auto_stories_rounded,
-                    color: isRecommended ? Colors.red : const Color(0xFF3F51B5),
-                    size: 26,
-                  ),
-                ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        m.title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 17,
-                          color: Color(0xFF2D3142),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        m.description,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: Color(0xFFC1C4D6),
-                  size: 18,
-                ),
-              ],
-            ),
+      child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        leading: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3F51B5).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: const Icon(
+            Icons.menu_book_rounded,
+            color: Color(0xFF3F51B5),
           ),
         ),
+        title: Text(
+          m.title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(m.description, style: const TextStyle(fontSize: 13)),
+            if (isCompleted)
+              const Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: Text(
+                  'Completed',
+                  style: TextStyle(
+                    color: Colors.green,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        trailing:
+            const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ModuleContentScreen(module: m),
+            ),
+          );
+        },
       ),
     );
   }

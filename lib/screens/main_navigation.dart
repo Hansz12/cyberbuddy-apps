@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'profile_screen.dart';
-import '../data/rewards_screen.dart';
+import 'rewards_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({Key? key}) : super(key: key);

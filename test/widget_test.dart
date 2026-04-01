@@ -5,15 +5,21 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:cyberbuddy/main.dart';
 
 void main() {
-  testWidgets('CyberBuddy dashboard smoke test', (WidgetTester tester) async {
+  testWidgets('Splash then login screen loads', (WidgetTester tester) async {
     await tester.pumpWidget(const CyberBuddyApp());
 
-    expect(find.text('CyberBuddy Dashboard'), findsOneWidget);
-    expect(find.text('Start Training Quiz'), findsOneWidget);
+    expect(find.byType(MaterialApp), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Secure Login'), findsOneWidget);
+    expect(find.text('CyberBuddy'), findsWidgets);
   });
 }
