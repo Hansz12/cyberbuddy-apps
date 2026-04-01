@@ -30,10 +30,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_bloc: ^8.1.0    # For Cubit
+  flutter_bloc: ^9.1.1    # For Cubit
   equatable: ^2.0.5       # For state comparison
-  firebase_core: ^2.0.0   # Backend
-  cloud_firestore: ^4.0.0 # Database
+  firebase_core: ^4.6.0   # Backend
+  cloud_firestore: ^6.2.0 # Database
   percent_indicator: ^4.2.2 # For the progress bars (Gamification)
 
   # The following adds the Cupertino Icons font to your application.

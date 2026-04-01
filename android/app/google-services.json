@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "978844644704",
+    "project_id": "cyberbuddy-86daa",
+    "storage_bucket": "cyberbuddy-86daa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:978844644704:android:c66a09846f97509043da05",
+        "android_client_info": {
+          "package_name": "com.example.cyberbuddy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGiNahFuO5GJEHCA6zUHZRPXKiFsferlA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
