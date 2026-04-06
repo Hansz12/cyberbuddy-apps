@@ -227,30 +227,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
 
                 const SizedBox(height: 20),
-                Center(
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      side: const BorderSide(color: Color(0xFF3F51B5)),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    onPressed: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MainNavigation(),
-                      ),
-                    ),
-                    icon: const Icon(Icons.person_search_rounded, size: 18),
-                    label: const Text("Continue as Guest"),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
