@@ -6,10 +6,14 @@ import '../data/dummy_data.dart';
 import '../models/app_user.dart';
 import '../models/learning_module.dart';
 import '../models/quiz_question.dart';
+import '../services/firestore_content_service.dart';
+import '../services/firestore_service.dart';
 import '../services/storage_service.dart';
 import 'app_state.dart';
 
 class AppCubit extends Cubit<AppState> {
+  List<QuizQuestion> _currentQuiz = [];
+
   AppCubit()
       : super(
     AppState(
@@ -131,6 +135,21 @@ class AppCubit extends Cubit<AppState> {
     await StorageService.save('lastLearningDate', state.lastLearningDate);
   }
 
+  Future<void> syncProgressToCloud() async {
+    await FirestoreService.saveUserProgress(
+      points: state.points,
+      streak: state.streak,
+      completedModuleIds: state.completedModuleIds,
+      weakTopics: state.weakTopics,
+      hasTakenPreTest: state.hasTakenPreTest,
+      preTestScore: state.preTestScore,
+      postTestScore: state.postTestScore,
+      topicCorrectAnswers: state.topicCorrectAnswers,
+      topicWrongAnswers: state.topicWrongAnswers,
+      lastLearningDate: state.lastLearningDate,
+    );
+  }
+
   Future<void> loadFromStorage() async {
     try {
       final name = await StorageService.load('name') ?? 'User';
@@ -179,14 +198,70 @@ class AppCubit extends Cubit<AppState> {
         ),
       );
 
+      await loadFromCloud();
+      await loadModulesFromCloud();
       _refreshBadges();
     } catch (_) {
+      emit(state.copyWith(isLoaded: true));
+    }
+  }
+
+  Future<void> loadFromCloud() async {
+    try {
+      final profile = await FirestoreService.getUserProfile();
+      final progress = await FirestoreService.getUserProgress();
+
+      if (profile == null && progress == null) return;
+
+      final merged = {...?profile, ...?progress};
+
       emit(
         state.copyWith(
+          user: state.user.copyWith(
+            name: merged['name']?.toString() ?? state.user.name,
+            programme:
+            merged['programme']?.toString() ?? state.user.programme,
+            level: merged['level']?.toString() ?? state.user.level,
+            interests: _decodeStringList(merged['interests']),
+          ),
+          points: (merged['points'] as num?)?.toInt() ?? state.points,
+          streak: (merged['streak'] as num?)?.toInt() ?? state.streak,
+          completedModuleIds:
+          _decodeStringList(merged['completedModuleIds']),
+          weakTopics: _decodeStringList(merged['weakTopics']),
+          hasTakenPreTest:
+          merged['hasTakenPreTest'] == true || state.hasTakenPreTest,
+          preTestScore:
+          (merged['preTestScore'] as num?)?.toInt() ?? state.preTestScore,
+          postTestScore:
+          (merged['postTestScore'] as num?)?.toInt() ?? state.postTestScore,
+          topicCorrectAnswers:
+          _decodeIntMap(merged['topicCorrectAnswers']),
+          topicWrongAnswers:
+          _decodeIntMap(merged['topicWrongAnswers']),
+          lastLearningDate:
+          merged['lastLearningDate']?.toString() ?? state.lastLearningDate,
           isLoaded: true,
         ),
       );
-    }
+
+      await saveToStorage();
+      _refreshBadges();
+    } catch (_) {}
+  }
+
+  Future<void> loadModulesFromCloud() async {
+    try {
+      final modules = await FirestoreContentService.getModules();
+      if (modules.isNotEmpty) {
+        emit(state.copyWith(modules: modules));
+      }
+    } catch (_) {}
+  }
+
+  Future<void> seedModulesToCloud() async {
+    await FirestoreContentService.seedInitialModules();
+    await loadModulesFromCloud();
   }
 
   Future<void> resetAllProgress() async {
@@ -200,7 +275,7 @@ class AppCubit extends Cubit<AppState> {
           level: 'Beginner',
           interests: [],
         ),
-        modules: DummyData.modules,
+        modules: state.modules,
         completedModuleIds: const [],
         weakTopics: const [],
         points: 0,
@@ -225,11 +300,11 @@ class AppCubit extends Cubit<AppState> {
     );
   }
 
-  void setupProfile({
+  Future<void> setupProfile({
     required String name,
     required String level,
     required List<String> interests,
-  }) {
+  }) async {
     emit(
       state.copyWith(
         user: state.user.copyWith(
@@ -240,11 +315,20 @@ class AppCubit extends Cubit<AppState> {
       ),
     );
 
-    saveToStorage();
+    await saveToStorage();
+
+    await FirestoreService.createOrUpdateUserProfile(
+      name: name,
+      programme: state.user.programme,
+      level: level,
+      interests: interests,
+    );
+
+    await syncProgressToCloud();
     _refreshBadges();
   }
 
-  void completePreTest(int score) {
+  Future<void> completePreTest(int score) async {
     emit(
       state.copyWith(
         hasTakenPreTest: true,
@@ -252,18 +336,20 @@ class AppCubit extends Cubit<AppState> {
       ),
     );
 
-    saveToStorage();
+    await saveToStorage();
+    await syncProgressToCloud();
     _refreshBadges();
   }
 
-  void completePostTest(int score) {
+  Future<void> completePostTest(int score) async {
     emit(
       state.copyWith(
         postTestScore: score,
       ),
     );
 
-    saveToStorage();
+    await saveToStorage();
+    await syncProgressToCloud();
     _refreshBadges();
   }
 
@@ -284,18 +370,15 @@ class AppCubit extends Cubit<AppState> {
   String get preTestAwarenessLevel =>
       classifyAwarenessLevel(state.preTestScore);
 
-  String get postTestAwarenessLevel =>
-      state.postTestScore > 0
-          ? classifyAwarenessLevel(state.postTestScore)
-          : 'Not Available';
+  String get postTestAwarenessLevel => state.postTestScore > 0
+      ? classifyAwarenessLevel(state.postTestScore)
+      : 'Not Available';
 
-  String get preTestRiskLevel =>
-      classifyRiskLevel(state.preTestScore);
+  String get preTestRiskLevel => classifyRiskLevel(state.preTestScore);
 
-  String get postTestRiskLevel =>
-      state.postTestScore > 0
-          ? classifyRiskLevel(state.postTestScore)
-          : 'Not Available';
+  String get postTestRiskLevel => state.postTestScore > 0
+      ? classifyRiskLevel(state.postTestScore)
+      : 'Not Available';
 
   String get evaluationFeedback {
     if (state.postTestScore == 0) {
@@ -315,16 +398,6 @@ class AppCubit extends Cubit<AppState> {
     }
 
     return 'Your post-test score is lower than your pre-test score. Review the recommended modules and retry the assessment.';
-  }
-
-  String get evaluationSummary {
-    if (state.postTestScore == 0) {
-      return 'Pre-test completed. Post-test evaluation is still pending.';
-    }
-
-    return 'Pre-test: ${state.preTestScore}% (${preTestAwarenessLevel}) | '
-        'Post-test: ${state.postTestScore}% (${postTestAwarenessLevel}) | '
-        'Improvement: ${improvementScore}%';
   }
 
   void changeTab(int index) {
@@ -347,7 +420,10 @@ class AppCubit extends Cubit<AppState> {
     }).toList();
   }
 
-  void openModule(LearningModule module) {
+  Future<void> openModule(LearningModule module) async {
+    final quiz = await FirestoreContentService.getQuizQuestions(module.id);
+    _currentQuiz = quiz;
+
     emit(
       state.copyWith(
         selectedModule: module,
@@ -358,7 +434,7 @@ class AppCubit extends Cubit<AppState> {
     );
   }
 
-  void completeLearning() {
+  Future<void> completeLearning() async {
     final module = state.selectedModule;
     if (module == null) return;
 
@@ -391,34 +467,18 @@ class AppCubit extends Cubit<AppState> {
       ),
     );
 
-    saveToStorage();
+    await saveToStorage();
+    await syncProgressToCloud();
     _refreshBadges();
   }
 
-  List<QuizQuestion> get currentQuiz {
-    final id = state.selectedModule?.id;
-    if (id == null) return [];
-
-    return DummyData.quizBank[id] ??
-        const [
-          QuizQuestion(
-            question: 'Which action best improves cybersecurity awareness?',
-            options: [
-              'Ignore warnings',
-              'Use risky links',
-              'Practice safe habits',
-              'Share credentials',
-            ],
-            answerIndex: 2,
-          ),
-        ];
-  }
+  List<QuizQuestion> get currentQuiz => _currentQuiz;
 
   void selectAnswer(int index) {
     emit(state.copyWith(selectedAnswer: index));
   }
 
-  void submitAnswer() {
+  Future<void> submitAnswer() async {
     if (state.selectedAnswer == null || currentQuiz.isEmpty) return;
 
     final question = currentQuiz[state.quizIndex];
@@ -465,11 +525,12 @@ class AppCubit extends Cubit<AppState> {
       );
     }
 
-    saveToStorage();
+    await saveToStorage();
+    await syncProgressToCloud();
     _refreshBadges();
   }
 
-  void finishQuizBackHome() {
+  Future<void> finishQuizBackHome() async {
     emit(
       state.copyWith(
         currentIndex: 0,
@@ -480,7 +541,8 @@ class AppCubit extends Cubit<AppState> {
       ),
     );
 
-    saveToStorage();
+    await saveToStorage();
+    await syncProgressToCloud();
   }
 
   int scoreModule(LearningModule module) {
@@ -498,8 +560,7 @@ class AppCubit extends Cubit<AppState> {
       score += 2;
     }
 
-    if (state.user.level == 'Beginner' &&
-        module.difficulty == 'Beginner') {
+    if (state.user.level == 'Beginner' && module.difficulty == 'Beginner') {
       score += 1;
     }
 
@@ -509,7 +570,6 @@ class AppCubit extends Cubit<AppState> {
   List<LearningModule> get recommendedModules {
     final sorted = List<LearningModule>.from(state.modules)
       ..sort((a, b) => scoreModule(b).compareTo(scoreModule(a)));
-
     return sorted.take(3).toList();
   }
 
@@ -546,29 +606,37 @@ class AppCubit extends Cubit<AppState> {
         case 'First Step':
           unlocked = totalCompletedModules >= 1;
           break;
+
         case 'Cyber Explorer':
           unlocked = totalCompletedModules >= 3;
           break;
+
         case 'Security Master':
           unlocked = totalCompletedModules >= state.modules.length &&
               state.modules.isNotEmpty;
           break;
+
         case 'Phishing Spotter':
           unlocked = state.completedModuleIds.contains('phishing');
           break;
+
         case 'Privacy Guard':
           unlocked = state.completedModuleIds.contains('privacy');
           break;
+
         case 'Quiz Warrior':
           unlocked = totalQuizAnswered >= 5;
           break;
+
         case 'Perfect Start':
           unlocked =
               state.preTestScore == 100 || state.postTestScore == 100;
           break;
+
         case 'Consistency Hero':
           unlocked = state.streak >= 3;
           break;
+
         case '7-Day Streak':
           unlocked = state.streak >= 7;
           break;

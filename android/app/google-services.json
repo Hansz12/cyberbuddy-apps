@@ -12,7 +12,12 @@
           "package_name": "com.example.cyberbuddy"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "978844644704-97jc8sr3npn56jbsvu384c2aord8cpr1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBGiNahFuO5GJEHCA6zUHZRPXKiFsferlA"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "978844644704-97jc8sr3npn56jbsvu384c2aord8cpr1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

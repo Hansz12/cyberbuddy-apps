@@ -139,8 +139,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton(
-                  onPressed: () {
-                    context.read<AppCubit>().setupProfile(
+                  onPressed: () async {
+                    await context.read<AppCubit>().setupProfile(
                       name: _nameController.text.trim().isEmpty
                           ? 'Farhana'
                           : _nameController.text.trim(),
@@ -149,6 +149,8 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     );
 
                     final cubit = context.read<AppCubit>();
+
+                    if (!mounted) return;
 
                     Navigator.pushReplacement(
                       context,

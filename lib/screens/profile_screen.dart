@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../cubit/app_cubit.dart';
 import '../cubit/app_state.dart';
+import '../services/auth_service.dart';
 import '../widgets/info_card.dart';
 import 'app_entry_screen.dart';
 
@@ -44,6 +45,32 @@ class ProfileScreen extends StatelessWidget {
               (route) => false,
         );
       }
+    }
+  }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text(
+          'Are you sure you want to logout from CyberBuddy?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true) {
+      await AuthService.signOut();
     }
   }
 
@@ -237,6 +264,20 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.black87,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    onPressed: () => _confirmLogout(context),
+                    icon: const Icon(Icons.logout),
+                    label: const Text('Logout'),
+                  ),
+                ),
+                const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton.icon(
