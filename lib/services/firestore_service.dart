@@ -17,6 +17,7 @@ class FirestoreService {
     if (uid == null) return;
 
     await _firestore.collection('users').doc(uid).set({
+      'uid': uid,
       'name': name,
       'programme': programme,
       'level': level,
@@ -49,6 +50,7 @@ class FirestoreService {
     if (uid == null) return;
 
     await _firestore.collection('users').doc(uid).set({
+      'uid': uid,
       'points': points,
       'streak': streak,
       'completedModuleIds': completedModuleIds,
@@ -69,5 +71,25 @@ class FirestoreService {
 
     final doc = await _firestore.collection('users').doc(uid).get();
     return doc.data();
+  }
+
+  static Future<List<Map<String, dynamic>>> getLeaderboard() async {
+    final snapshot = await _firestore
+        .collection('users')
+        .orderBy('points', descending: true)
+        .limit(20)
+        .get();
+
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+
+      return {
+        'uid': doc.id,
+        'name': data['name']?.toString() ?? 'Unknown User',
+        'points': (data['points'] as num?)?.toInt() ?? 0,
+        'streak': (data['streak'] as num?)?.toInt() ?? 0,
+        'level': data['level']?.toString() ?? 'Beginner',
+      };
+    }).toList();
   }
 }

@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 import '../models/badge_model.dart';
 import '../models/learning_module.dart';
 import '../models/quiz_question.dart';
@@ -8,39 +6,39 @@ class DummyData {
   static List<LearningModule> modules = const [
     LearningModule(
       id: 'phishing',
-      title: 'Phishing Defense',
+      title: 'Phishing Awareness',
       difficulty: 'Beginner',
-      category: 'Email Safety',
+      category: 'Email Security',
       duration: '8 min',
       points: 50,
-      description:
-      'Learn how to spot fake emails, urgent requests, and suspicious links.',
-      tags: ['phishing', 'email', 'links'],
-      icon: Icons.shield_outlined,
+      description: 'Learn how to identify phishing attacks.',
+      content:
+      'Phishing is a cyber attack where attackers trick users into revealing sensitive information such as passwords, banking details, or personal data.',
+      tags: ['phishing', 'email', 'scam'],
     ),
     LearningModule(
       id: 'password',
-      title: 'Strong Password Habits',
+      title: 'Strong Password Security',
       difficulty: 'Beginner',
       category: 'Account Security',
       duration: '6 min',
       points: 40,
-      description:
-      'Build strong unique passwords and understand why password reuse is risky.',
+      description: 'Learn how to create and manage strong passwords.',
+      content:
+      'Strong passwords reduce the risk of unauthorized access. Use a unique password for each account and avoid using personal details.',
       tags: ['password', 'account', 'credentials'],
-      icon: Icons.lock_outline,
     ),
     LearningModule(
       id: 'malware',
-      title: 'Malware & Unsafe Downloads',
+      title: 'Malware and Unsafe Downloads',
       difficulty: 'Intermediate',
       category: 'Device Safety',
       duration: '10 min',
       points: 60,
-      description:
-      'Recognize risky apps, downloads, and warning signs of malware infection.',
-      tags: ['malware', 'download', 'apps'],
-      icon: Icons.bug_report_outlined,
+      description: 'Understand malware risks from apps and downloads.',
+      content:
+      'Malware is malicious software that can steal information, damage devices, or spy on users. Avoid downloading apps from unknown sources.',
+      tags: ['malware', 'app', 'download'],
     ),
     LearningModule(
       id: 'privacy',
@@ -49,22 +47,22 @@ class DummyData {
       category: 'Privacy',
       duration: '7 min',
       points: 45,
-      description:
-      'Reduce oversharing and protect your identity on social platforms.',
+      description: 'Learn how to protect personal information online.',
+      content:
+      'Social media privacy is important because oversharing personal data can expose users to scams, identity theft, and stalking.',
       tags: ['privacy', 'social', 'identity'],
-      icon: Icons.public,
     ),
     LearningModule(
       id: 'incident',
-      title: 'Basic Incident Reporting',
+      title: 'Incident Reporting Basics',
       difficulty: 'Intermediate',
-      category: 'Response',
+      category: 'Cyber Response',
       duration: '5 min',
       points: 35,
-      description:
-      'Know what to do if a cyber incident happens and how to report it.',
-      tags: ['reporting', 'incident', 'response'],
-      icon: Icons.notifications_active_outlined,
+      description: 'Learn what to do when a cyber incident happens.',
+      content:
+      'Cyber incidents such as hacked accounts, suspicious logins, or data leaks should be handled quickly. Report the issue immediately.',
+      tags: ['incident', 'reporting', 'response'],
     ),
   ];
 
@@ -90,161 +88,46 @@ class DummyData {
   static Map<String, List<QuizQuestion>> quizBank = const {
     'phishing': [
       QuizQuestion(
-        question: 'What is a common sign of a phishing email?',
+        question: 'What is a phishing email?',
         options: [
-          'A message asking for urgent action',
-          'A normal class reminder',
-          'A trusted saved contact',
-          'A personal note from your friend',
-        ],
-        answerIndex: 0,
-      ),
-      QuizQuestion(
-        question: 'What should you check before clicking a link in an email?',
-        options: [
-          'The font style',
-          'The sender email and URL destination',
-          'The email color',
-          'The message length',
+          'A safe email',
+          'An email asking for personal information',
+          'A company newsletter',
+          'A normal reminder',
         ],
         answerIndex: 1,
-      ),
-      QuizQuestion(
-        question: 'What is the safest action if you receive a suspicious email?',
-        options: [
-          'Reply with your password',
-          'Ignore all future emails forever',
-          'Report or verify the message first',
-          'Click the link to check quickly',
-        ],
-        answerIndex: 2,
       ),
     ],
     'password': [
       QuizQuestion(
-        question: 'Which option is the strongest password practice?',
-        options: [
-          'Using your birthday',
-          'Using the same password everywhere',
-          'Using a mix of letters, numbers, and symbols',
-          'Using only lowercase letters',
-        ],
-        answerIndex: 2,
-      ),
-      QuizQuestion(
-        question: 'Which habit is unsafe?',
-        options: [
-          'Using a unique password',
-          'Using a password manager',
-          'Reusing the same password on many accounts',
-          'Changing password after suspicious activity',
-        ],
-        answerIndex: 2,
-      ),
-      QuizQuestion(
-        question: 'Why should passwords be unique for each account?',
-        options: [
-          'To make accounts easier to guess',
-          'Because one leaked password can affect multiple accounts',
-          'Because apps require the same password',
-          'To reduce account protection',
-        ],
-        answerIndex: 1,
+        question: 'Which password is strongest?',
+        options: ['123456', 'password', 'MyName2002', 'T!mE#84xP'],
+        answerIndex: 3,
       ),
     ],
     'malware': [
       QuizQuestion(
-        question: 'What is a common source of malware?',
-        options: [
-          'Official app stores only',
-          'Trusted system updates',
-          'Unknown downloads and suspicious attachments',
-          'Strong passwords',
-        ],
-        answerIndex: 2,
-      ),
-      QuizQuestion(
-        question: 'What should you do before installing an app?',
-        options: [
-          'Ignore app permissions',
-          'Check the source and reviews',
-          'Turn off device security',
-          'Download from random links',
-        ],
-        answerIndex: 1,
-      ),
-      QuizQuestion(
-        question: 'Which action helps reduce malware risk?',
-        options: [
-          'Installing cracked APK files',
-          'Keeping device software updated',
-          'Opening every email attachment',
-          'Disabling all protections',
-        ],
+        question: 'What is malware?',
+        options: ['A game app', 'Harmful software', 'Cloud storage', 'Safe email'],
         answerIndex: 1,
       ),
     ],
     'privacy': [
       QuizQuestion(
-        question: 'What is the best way to protect social media privacy?',
+        question: 'Why is oversharing risky?',
         options: [
-          'Share personal info publicly',
-          'Review and adjust privacy settings',
-          'Post your location every day',
-          'Accept every stranger request',
+          'It improves privacy',
+          'It helps attackers collect personal data',
+          'It blocks scams',
+          'It hides identity',
         ],
         answerIndex: 1,
-      ),
-      QuizQuestion(
-        question: 'Which example is risky oversharing?',
-        options: [
-          'Posting your full address publicly',
-          'Using private account settings',
-          'Reviewing followers list',
-          'Removing unknown contacts',
-        ],
-        answerIndex: 0,
-      ),
-      QuizQuestion(
-        question: 'Why is oversharing dangerous?',
-        options: [
-          'It helps attackers collect personal information',
-          'It always improves account safety',
-          'It blocks scams completely',
-          'It hides your online identity',
-        ],
-        answerIndex: 0,
       ),
     ],
     'incident': [
       QuizQuestion(
-        question: 'What should you do first after noticing suspicious account activity?',
-        options: [
-          'Ignore it',
-          'Change your password immediately',
-          'Post about it online first',
-          'Delete all apps',
-        ],
-        answerIndex: 1,
-      ),
-      QuizQuestion(
-        question: 'Why is reporting a cyber incident important?',
-        options: [
-          'So the issue can be handled quickly and documented',
-          'To make the issue bigger',
-          'To delay recovery',
-          'Because nothing else matters',
-        ],
-        answerIndex: 0,
-      ),
-      QuizQuestion(
-        question: 'What should you keep after a cyber incident?',
-        options: [
-          'Nothing',
-          'Screenshots or evidence',
-          'Only your opinions',
-          'Just the device wallpaper',
-        ],
+        question: 'What should you do first after account compromise?',
+        options: ['Ignore it', 'Change password immediately', 'Post online', 'Delete browser'],
         answerIndex: 1,
       ),
     ],

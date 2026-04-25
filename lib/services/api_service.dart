@@ -1,56 +1,44 @@
-import 'dart:convert';
-
-import 'package:http/http.dart' as http;
-
 import '../models/security_tip.dart';
 
 class ApiService {
   static Future<List<SecurityTip>> fetchSecurityTips() async {
-    try {
-      final response = await http.get(
-        Uri.parse('https://jsonplaceholder.typicode.com/posts?_limit=5'),
-      );
+    await Future.delayed(const Duration(milliseconds: 600));
 
-      if (response.statusCode == 200) {
-        final List data = jsonDecode(response.body);
-
-        return data
-            .map((item) => SecurityTip.fromJson(item))
-            .toList();
-      } else {
-        return _fallbackTips();
-      }
-    } catch (_) {
-      return _fallbackTips();
-    }
-  }
-
-  static List<SecurityTip> _fallbackTips() {
     return const [
       SecurityTip(
-        title: 'Avoid Suspicious Links',
+        title: 'Check Links Before Clicking',
         description:
-        'Do not click links from unknown emails or messages without checking the sender and destination first.',
+        'Always inspect links in emails or messages before clicking. Avoid opening links from unknown senders or urgent messages asking for personal information.',
       ),
       SecurityTip(
-        title: 'Use Strong Passwords',
+        title: 'Use Strong and Unique Passwords',
         description:
-        'Create unique passwords using a mix of letters, numbers, and symbols to reduce account compromise risk.',
+        'Create different passwords for different accounts. A strong password should include uppercase letters, lowercase letters, numbers, and symbols.',
       ),
       SecurityTip(
         title: 'Enable Two-Factor Authentication',
         description:
-        'Activate 2FA whenever available to add an extra layer of protection to your accounts.',
+        'Two-factor authentication adds an extra layer of security by requiring a second verification step besides your password.',
+      ),
+      SecurityTip(
+        title: 'Avoid Unknown App Downloads',
+        description:
+        'Only download apps from trusted sources such as Google Play Store or official websites. Unknown APK files may contain malware.',
       ),
       SecurityTip(
         title: 'Update Your Device Regularly',
         description:
-        'Keep your phone and apps updated to reduce security vulnerabilities and malware risks.',
+        'System and app updates often include security patches that protect your device from newly discovered vulnerabilities.',
       ),
       SecurityTip(
-        title: 'Protect Your Privacy',
+        title: 'Protect Your Personal Information',
         description:
-        'Review social media privacy settings regularly and avoid oversharing personal information online.',
+        'Avoid sharing your address, phone number, identification number, or account details publicly on social media.',
+      ),
+      SecurityTip(
+        title: 'Report Suspicious Activity',
+        description:
+        'If you notice suspicious login attempts or account changes, change your password immediately and report the incident to the platform or administrator.',
       ),
     ];
   }
