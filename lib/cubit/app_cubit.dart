@@ -119,6 +119,8 @@ class AppCubit extends Cubit<AppState> {
   }
 
   Future<void> saveToStorage() async {
+    await StorageService.save('activeUid', FirestoreService.currentUid ?? '');
+
     await StorageService.save('name', state.user.name);
     await StorageService.save('programme', state.user.programme);
     await StorageService.save('level', state.user.level);
@@ -152,6 +154,16 @@ class AppCubit extends Cubit<AppState> {
 
   Future<void> loadFromStorage() async {
     try {
+      final currentUid = FirestoreService.currentUid;
+      final savedUid = await StorageService.load('activeUid');
+
+      if (currentUid != null &&
+          savedUid != null &&
+          savedUid.toString().isNotEmpty &&
+          savedUid.toString() != currentUid) {
+        await StorageService.clearAll();
+      }
+
       final name = await StorageService.load('name') ?? 'User';
       final programme = await StorageService.load('programme') ??
           'Computer Science (Mobile Computing)';
@@ -211,36 +223,35 @@ class AppCubit extends Cubit<AppState> {
       final profile = await FirestoreService.getUserProfile();
       final progress = await FirestoreService.getUserProgress();
 
-      if (profile == null && progress == null) return;
+      if (profile == null && progress == null) {
+        await saveToStorage();
+        return;
+      }
 
       final merged = {...?profile, ...?progress};
 
       emit(
         state.copyWith(
           user: state.user.copyWith(
-            name: merged['name']?.toString() ?? state.user.name,
-            programme:
-            merged['programme']?.toString() ?? state.user.programme,
-            level: merged['level']?.toString() ?? state.user.level,
+            name: merged['name']?.toString() ?? 'User',
+            programme: merged['programme']?.toString() ??
+                'Computer Science (Mobile Computing)',
+            level: merged['level']?.toString() ?? 'Beginner',
             interests: _decodeStringList(merged['interests']),
           ),
-          points: (merged['points'] as num?)?.toInt() ?? state.points,
-          streak: (merged['streak'] as num?)?.toInt() ?? state.streak,
+          points: (merged['points'] as num?)?.toInt() ?? 0,
+          streak: (merged['streak'] as num?)?.toInt() ?? 0,
           completedModuleIds:
           _decodeStringList(merged['completedModuleIds']),
           weakTopics: _decodeStringList(merged['weakTopics']),
-          hasTakenPreTest:
-          merged['hasTakenPreTest'] == true || state.hasTakenPreTest,
-          preTestScore:
-          (merged['preTestScore'] as num?)?.toInt() ?? state.preTestScore,
-          postTestScore:
-          (merged['postTestScore'] as num?)?.toInt() ?? state.postTestScore,
+          hasTakenPreTest: merged['hasTakenPreTest'] == true,
+          preTestScore: (merged['preTestScore'] as num?)?.toInt() ?? 0,
+          postTestScore: (merged['postTestScore'] as num?)?.toInt() ?? 0,
           topicCorrectAnswers:
           _decodeIntMap(merged['topicCorrectAnswers']),
           topicWrongAnswers:
           _decodeIntMap(merged['topicWrongAnswers']),
-          lastLearningDate:
-          merged['lastLearningDate']?.toString() ?? state.lastLearningDate,
+          lastLearningDate: merged['lastLearningDate']?.toString() ?? '',
           isLoaded: true,
         ),
       );
@@ -298,6 +309,9 @@ class AppCubit extends Cubit<AppState> {
         lastLearningDate: '',
       ),
     );
+
+    await saveToStorage();
+    await syncProgressToCloud();
   }
 
   Future<void> setupProfile({
@@ -391,6 +405,10 @@ class AppCubit extends Cubit<AppState> {
 
     if (improvementScore >= 10) {
       return 'Good progress. Your awareness level improved after interacting with the learning modules and quizzes.';
+    }
+
+    if (improvementScore == 0 && state.postTestScore >= 80) {
+      return 'You have maintained a high level of cybersecurity awareness. Continue learning to strengthen your cybersecurity habits.';
     }
 
     if (improvementScore >= 0) {
@@ -578,25 +596,28 @@ class AppCubit extends Cubit<AppState> {
     final reasons = <String>[];
 
     if (state.weakTopics.contains(module.id)) {
-      reasons.add('this is one of your weak topics');
+      reasons.add('your weak topic');
     }
 
     if (state.user.interests.any((interest) => module.tags.contains(interest))) {
-      reasons.add('it matches your selected interests');
+      reasons.add('your interests');
     }
 
-    if (state.user.level == module.difficulty) {
-      reasons.add('it matches your learning level');
-    } else if (state.user.level == 'Beginner' &&
-        module.difficulty == 'Beginner') {
-      reasons.add('it is suitable for beginner users');
+    if (state.user.level == module.difficulty ||
+        (state.user.level == 'Beginner' && module.difficulty == 'Beginner')) {
+      reasons.add('your learning level');
     }
 
     if (reasons.isEmpty) {
       return 'Recommended based on your overall learning profile.';
     }
 
-    return 'Recommended because ${reasons.join(', ')}.';
+    if (reasons.length == 1) {
+      return 'Recommended because it matches ${reasons.first}.';
+    }
+
+    final last = reasons.removeLast();
+    return 'Recommended because it matches ${reasons.join(', ')} and $last.';
   }
 
   void _refreshBadges() {

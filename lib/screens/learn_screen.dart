@@ -15,105 +15,158 @@ class LearnScreen extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<AppCubit>();
         final modules = cubit.filteredModules;
-        final hasSearch = state.search.trim().isNotEmpty;
 
         return SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: TextField(
+          child: RefreshIndicator(
+            onRefresh: cubit.loadModulesFromCloud,
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                const Text(
+                  'Learning Modules',
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Choose a cybersecurity topic, complete the lesson, and answer the quiz.',
+                  style: TextStyle(color: Colors.grey, height: 1.4),
+                ),
+                const SizedBox(height: 16),
+                TextField(
                   onChanged: cubit.updateSearch,
                   decoration: InputDecoration(
-                    hintText: 'Search module, topic, or category',
+                    hintText: 'Search modules, topics, or content...',
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(22),
                       borderSide: BorderSide.none,
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: modules.isEmpty
-                    ? Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: _buildEmptyState(
-                    icon: Icons.menu_book_outlined,
-                    title: hasSearch
-                        ? 'No module found'
-                        : 'No learning modules available',
-                    message: hasSearch
-                        ? 'Try a different keyword or clear your search to view all modules.'
-                        : 'Modules will appear here once learning content is available.',
-                  ),
-                )
-                    : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: modules.length,
-                  itemBuilder: (context, index) {
-                    final module = modules[index];
-                    final completed =
-                    state.completedModuleIds.contains(module.id);
-
-                    return ModuleCard(
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _summaryCard(
+                        title: 'Completed',
+                        value:
+                        '${cubit.totalCompletedModules}/${state.modules.length}',
+                        icon: Icons.check_circle_outline,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _summaryCard(
+                        title: 'Weak Topics',
+                        value: '${cubit.totalWeakTopics}',
+                        icon: Icons.warning_amber_outlined,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (modules.isEmpty)
+                  _emptyState()
+                else
+                  ...modules.map(
+                        (module) => ModuleCard(
                       module: module,
-                      completed: completed,
-                      onTap: () {
-                        cubit.openModule(module);
+                      completed: state.completedModuleIds.contains(module.id),
+                      weakTopic: state.weakTopics.contains(module.id),
+                      onTap: () async {
+                        final appCubit = context.read<AppCubit>();
+
+                        await appCubit.openModule(module);
+
+                        if (!context.mounted) return;
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) =>
-                            const ModuleDetailScreen(),
+                            builder: (_) => BlocProvider.value(
+                              value: appCubit,
+                              child: const ModuleDetailScreen(),
+                            ),
                           ),
                         );
                       },
-                    );
-                  },
-                ),
-              ),
-            ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildEmptyState({
-    required IconData icon,
+  Widget _summaryCard({
     required String title,
-    required String message,
+    required String value,
+    required IconData icon,
   }) {
-    return Center(
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(15),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.indigo.shade50,
+              child: Icon(icon, color: Colors.indigo),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 44, color: Colors.indigo),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                message,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.grey, height: 1.5),
-              ),
-            ],
-          ),
+      ),
+    );
+  }
+
+  Widget _emptyState() {
+    return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: const Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          children: [
+            Icon(Icons.search_off, size: 42, color: Colors.indigo),
+            SizedBox(height: 12),
+            Text(
+              'No modules found',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Try another keyword or pull down to refresh modules from Firestore.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, height: 1.4),
+            ),
+          ],
         ),
       ),
     );

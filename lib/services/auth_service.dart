@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'storage_service.dart';
+
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -27,7 +29,8 @@ class AuthService {
     );
   }
 
-  static Future<void> signOut() {
-    return _auth.signOut();
+  static Future<void> signOut() async {
+    await StorageService.clearAll();
+    await _auth.signOut();
   }
 }

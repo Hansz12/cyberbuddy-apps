@@ -129,7 +129,12 @@ class _PostTestScreenState extends State<PostTestScreen> {
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const RootScreen()),
+      MaterialPageRoute(
+        builder: (_) => BlocProvider.value(
+          value: context.read<AppCubit>(),
+          child: const RootScreen(),
+        ),
+      ),
           (route) => false,
     );
   }
@@ -169,42 +174,7 @@ class _PostTestScreenState extends State<PostTestScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0F172A), Color(0xFF1D4ED8)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.fact_check_outlined,
-                      color: Colors.white,
-                      size: 36,
-                    ),
-                    SizedBox(height: 14),
-                    Text(
-                      'Cybersecurity Post-Test',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 23,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Complete this assessment to evaluate your awareness after using CyberBuddy.',
-                      style: TextStyle(color: Colors.white70, height: 1.4),
-                    ),
-                  ],
-                ),
-              ),
+              _headerCard(),
               const SizedBox(height: 16),
               Text(
                 'Answered: ${selectedAnswers.length}/${questions.length}',
@@ -253,7 +223,9 @@ class _PostTestScreenState extends State<PostTestScreen> {
                                   selectedAnswers[index] = value!;
                                 });
                               },
-                              title: Text(question['options'][optionIndex]),
+                              title: Text(
+                                question['options'][optionIndex],
+                              ),
                             );
                           },
                         ),
@@ -279,6 +251,45 @@ class _PostTestScreenState extends State<PostTestScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _headerCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1D4ED8)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.fact_check_outlined,
+            color: Colors.white,
+            size: 36,
+          ),
+          SizedBox(height: 14),
+          Text(
+            'Cybersecurity Post-Test',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 23,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Complete this assessment to evaluate your awareness after using CyberBuddy.',
+            style: TextStyle(color: Colors.white70, height: 1.4),
+          ),
+        ],
       ),
     );
   }

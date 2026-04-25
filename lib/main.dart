@@ -1,8 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'cubit/app_cubit.dart';
 import 'screens/auth_gate_screen.dart';
 
 Future<void> main() async {
@@ -17,18 +15,15 @@ class CyberBuddyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => AppCubit(),
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'CyberBuddy',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
-          useMaterial3: true,
-          scaffoldBackgroundColor: const Color(0xFFF5F7FB),
-        ),
-        home: const AuthGateScreen(),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'CyberBuddy',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        useMaterial3: true,
+        scaffoldBackgroundColor: const Color(0xFFF5F7FB),
       ),
+      home: const AuthGateScreen(),
     );
   }
 }

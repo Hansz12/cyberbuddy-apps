@@ -16,16 +16,12 @@ class ModuleDetailScreen extends StatelessWidget {
 
         if (module == null) {
           return const Scaffold(
-            body: Center(
-              child: Text('No module selected'),
-            ),
+            body: Center(child: Text('No module selected')),
           );
         }
 
         return Scaffold(
-          appBar: AppBar(
-            title: const Text('Learning Module'),
-          ),
+          appBar: AppBar(title: const Text('Learning Module')),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -38,18 +34,12 @@ class ModuleDetailScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(28),
                     gradient: const LinearGradient(
                       colors: [Color(0xFF2563EB), Color(0xFF4338CA)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
                     ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        module.icon,
-                        color: Colors.white,
-                        size: 36,
-                      ),
+                      Icon(module.icon, color: Colors.white, size: 36),
                       const SizedBox(height: 16),
                       Text(
                         module.title,
@@ -64,29 +54,12 @@ class ModuleDetailScreen extends StatelessWidget {
                         module.description,
                         style: const TextStyle(color: Colors.white70),
                       ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          Chip(
-                            label: Text(module.category),
-                            backgroundColor: Colors.white,
-                          ),
-                          Chip(
-                            label: Text(module.difficulty),
-                            backgroundColor: Colors.white,
-                          ),
-                          Chip(
-                            label: Text(module.duration),
-                            backgroundColor: Colors.white,
-                          ),
-                        ],
-                      ),
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 16),
+
                 Card(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(24),
@@ -105,15 +78,11 @@ class ModuleDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          module.content.isEmpty
-                              ? 'No content available for this module yet.'
-                              : module.content,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            height: 1.6,
-                          ),
+                          module.content,
+                          style: const TextStyle(height: 1.6),
                         ),
                         const SizedBox(height: 20),
+
                         SizedBox(
                           width: double.infinity,
                           child: FilledButton(
@@ -125,7 +94,10 @@ class ModuleDetailScreen extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const QuizScreen(),
+                                  builder: (_) => BlocProvider.value(
+                                    value: context.read<AppCubit>(),
+                                    child: const QuizScreen(),
+                                  ),
                                 ),
                               );
                             },
