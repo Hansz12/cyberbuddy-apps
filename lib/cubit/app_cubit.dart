@@ -120,7 +120,6 @@ class AppCubit extends Cubit<AppState> {
 
   Future<void> saveToStorage() async {
     await StorageService.save('activeUid', FirestoreService.currentUid ?? '');
-
     await StorageService.save('name', state.user.name);
     await StorageService.save('programme', state.user.programme);
     await StorageService.save('level', state.user.level);
@@ -206,12 +205,14 @@ class AppCubit extends Cubit<AppState> {
           topicCorrectAnswers: topicCorrectAnswers,
           topicWrongAnswers: topicWrongAnswers,
           lastLearningDate: lastLearningDate.toString(),
-          isLoaded: true,
+          isLoaded: false,
         ),
       );
 
       await loadFromCloud();
       await loadModulesFromCloud();
+
+      emit(state.copyWith(isLoaded: true));
       _refreshBadges();
     } catch (_) {
       emit(state.copyWith(isLoaded: true));
@@ -241,23 +242,19 @@ class AppCubit extends Cubit<AppState> {
           ),
           points: (merged['points'] as num?)?.toInt() ?? 0,
           streak: (merged['streak'] as num?)?.toInt() ?? 0,
-          completedModuleIds:
-          _decodeStringList(merged['completedModuleIds']),
+          completedModuleIds: _decodeStringList(merged['completedModuleIds']),
           weakTopics: _decodeStringList(merged['weakTopics']),
           hasTakenPreTest: merged['hasTakenPreTest'] == true,
           preTestScore: (merged['preTestScore'] as num?)?.toInt() ?? 0,
           postTestScore: (merged['postTestScore'] as num?)?.toInt() ?? 0,
-          topicCorrectAnswers:
-          _decodeIntMap(merged['topicCorrectAnswers']),
-          topicWrongAnswers:
-          _decodeIntMap(merged['topicWrongAnswers']),
+          topicCorrectAnswers: _decodeIntMap(merged['topicCorrectAnswers']),
+          topicWrongAnswers: _decodeIntMap(merged['topicWrongAnswers']),
           lastLearningDate: merged['lastLearningDate']?.toString() ?? '',
-          isLoaded: true,
+          isLoaded: false,
         ),
       );
 
       await saveToStorage();
-      _refreshBadges();
     } catch (_) {}
   }
 
@@ -356,11 +353,7 @@ class AppCubit extends Cubit<AppState> {
   }
 
   Future<void> completePostTest(int score) async {
-    emit(
-      state.copyWith(
-        postTestScore: score,
-      ),
-    );
+    emit(state.copyWith(postTestScore: score));
 
     await saveToStorage();
     await syncProgressToCloud();
@@ -381,8 +374,7 @@ class AppCubit extends Cubit<AppState> {
     return 'High Risk';
   }
 
-  String get preTestAwarenessLevel =>
-      classifyAwarenessLevel(state.preTestScore);
+  String get preTestAwarenessLevel => classifyAwarenessLevel(state.preTestScore);
 
   String get postTestAwarenessLevel => state.postTestScore > 0
       ? classifyAwarenessLevel(state.postTestScore)
@@ -505,7 +497,7 @@ class AppCubit extends Cubit<AppState> {
     final moduleId = state.selectedModule!.id;
 
     int points = state.points;
-    List<String> weak = List<String>.from(state.weakTopics);
+    final weak = List<String>.from(state.weakTopics);
 
     final updatedCorrect = Map<String, int>.from(state.topicCorrectAnswers);
     final updatedWrong = Map<String, int>.from(state.topicWrongAnswers);
@@ -632,8 +624,8 @@ class AppCubit extends Cubit<AppState> {
           unlocked = totalCompletedModules >= 3;
           break;
         case 'Security Master':
-          unlocked = totalCompletedModules >= state.modules.length &&
-              state.modules.isNotEmpty;
+          unlocked =
+              totalCompletedModules >= state.modules.length && state.modules.isNotEmpty;
           break;
         case 'Phishing Spotter':
           unlocked = state.completedModuleIds.contains('phishing');

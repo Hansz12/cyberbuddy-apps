@@ -18,9 +18,7 @@ class AuthGateScreen extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -30,19 +28,18 @@ class AuthGateScreen extends StatelessWidget {
           return const LoginScreen();
         }
 
-        return FutureBuilder(
+        return FutureBuilder<void>(
+          key: ValueKey('session_${user.uid}'),
           future: _prepareUserSession(user.uid),
           builder: (context, sessionSnapshot) {
-            if (sessionSnapshot.connectionState == ConnectionState.waiting) {
+            if (sessionSnapshot.connectionState != ConnectionState.done) {
               return const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                body: Center(child: CircularProgressIndicator()),
               );
             }
 
-            return BlocProvider(
-              key: ValueKey(user.uid),
+            return BlocProvider<AppCubit>(
+              key: ValueKey('cubit_${user.uid}'),
               create: (_) => AppCubit(),
               child: const AppEntryScreen(),
             );

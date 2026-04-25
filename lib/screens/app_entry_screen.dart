@@ -16,22 +16,24 @@ class AppEntryScreen extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<AppCubit>();
 
+        // Loading dulu (WAIT FIRESTORE)
         if (!state.isLoaded) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
+        // Profile belum setup
         if (!cubit.isProfileCompleted) {
           return const ProfileSetupScreen();
         }
 
+        // 🔥 PRETEST CONDITION (FIXED)
         if (!state.hasTakenPreTest) {
           return const PreTestScreen();
         }
 
+        // Normal user flow
         return const RootScreen();
       },
     );
