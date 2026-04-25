@@ -1,6 +1,7 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
-class LearningModule {
+class LearningModule extends Equatable {
   final String id;
   final String title;
   final String difficulty;
@@ -8,9 +9,8 @@ class LearningModule {
   final String duration;
   final int points;
   final String description;
+  final String content;
   final List<String> tags;
-  final IconData icon;
-  final String? content;
 
   const LearningModule({
     required this.id,
@@ -20,45 +20,37 @@ class LearningModule {
     required this.duration,
     required this.points,
     required this.description,
+    required this.content,
     required this.tags,
-    required this.icon,
-    this.content,
   });
 
-  factory LearningModule.fromFirestore(
-      String id,
-      Map<String, dynamic> data,
-      ) {
-    return LearningModule(
-      id: id,
-      title: data['title']?.toString() ?? 'Untitled Module',
-      difficulty: data['difficulty']?.toString() ?? 'Beginner',
-      category: data['category']?.toString() ?? 'General',
-      duration: data['duration']?.toString() ?? '5 min',
-      points: (data['points'] as num?)?.toInt() ?? 0,
-      description: data['description']?.toString() ?? '',
-      tags: (data['tags'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
-          .toList(),
-      icon: _mapIcon(data['icon']?.toString()),
-      content: data['content']?.toString(),
-    );
-  }
-
-  static IconData _mapIcon(String? iconName) {
-    switch (iconName) {
-      case 'shield':
-        return Icons.shield_outlined;
-      case 'lock':
+  IconData get icon {
+    switch (id) {
+      case 'phishing':
+        return Icons.phishing_outlined;
+      case 'password':
         return Icons.lock_outline;
-      case 'bug':
+      case 'malware':
         return Icons.bug_report_outlined;
-      case 'public':
-        return Icons.public;
+      case 'privacy':
+        return Icons.privacy_tip_outlined;
       case 'incident':
-        return Icons.notifications_active_outlined;
+        return Icons.report_problem_outlined;
       default:
-        return Icons.menu_book_outlined;
+        return Icons.security_outlined;
     }
   }
+
+  @override
+  List<Object?> get props => [
+    id,
+    title,
+    difficulty,
+    category,
+    duration,
+    points,
+    description,
+    content,
+    tags,
+  ];
 }

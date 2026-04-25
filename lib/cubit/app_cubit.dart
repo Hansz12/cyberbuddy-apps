@@ -416,7 +416,8 @@ class AppCubit extends Cubit<AppState> {
     return state.modules.where((module) {
       return module.title.toLowerCase().contains(query) ||
           module.category.toLowerCase().contains(query) ||
-          module.description.toLowerCase().contains(query);
+          module.description.toLowerCase().contains(query) ||
+          module.content.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -606,37 +607,28 @@ class AppCubit extends Cubit<AppState> {
         case 'First Step':
           unlocked = totalCompletedModules >= 1;
           break;
-
         case 'Cyber Explorer':
           unlocked = totalCompletedModules >= 3;
           break;
-
         case 'Security Master':
           unlocked = totalCompletedModules >= state.modules.length &&
               state.modules.isNotEmpty;
           break;
-
         case 'Phishing Spotter':
           unlocked = state.completedModuleIds.contains('phishing');
           break;
-
         case 'Privacy Guard':
           unlocked = state.completedModuleIds.contains('privacy');
           break;
-
         case 'Quiz Warrior':
           unlocked = totalQuizAnswered >= 5;
           break;
-
         case 'Perfect Start':
-          unlocked =
-              state.preTestScore == 100 || state.postTestScore == 100;
+          unlocked = state.preTestScore == 100 || state.postTestScore == 100;
           break;
-
         case 'Consistency Hero':
           unlocked = state.streak >= 3;
           break;
-
         case '7-Day Streak':
           unlocked = state.streak >= 7;
           break;

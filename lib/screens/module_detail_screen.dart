@@ -67,6 +67,7 @@ class ModuleDetailScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 8,
+                        runSpacing: 8,
                         children: [
                           Chip(
                             label: Text(module.category),
@@ -104,7 +105,9 @@ class ModuleDetailScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          _getModuleContent(module.id),
+                          module.content.isEmpty
+                              ? 'No content available for this module yet.'
+                              : module.content,
                           style: const TextStyle(
                             fontSize: 15,
                             height: 1.6,
@@ -114,8 +117,11 @@ class ModuleDetailScreen extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: FilledButton(
-                            onPressed: () {
-                              context.read<AppCubit>().completeLearning();
+                            onPressed: () async {
+                              await context.read<AppCubit>().completeLearning();
+
+                              if (!context.mounted) return;
+
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -138,112 +144,5 @@ class ModuleDetailScreen extends StatelessWidget {
         );
       },
     );
-  }
-
-  String _getModuleContent(String id) {
-    switch (id) {
-      case 'phishing':
-        return '''
-Phishing is a cyber attack that tricks users into revealing sensitive information such as passwords, banking details, or personal data.
-
-Common warning signs of phishing:
-• Urgent messages like “Your account will be suspended”
-• Suspicious sender email addresses
-• Fake links that imitate real websites
-• Attachments from unknown sources
-
-Safe practices:
-• Always verify the sender’s email
-• Never click unknown or shortened links without checking
-• Inspect the website URL before entering credentials
-• Report suspicious emails instead of replying
-
-Why this matters:
-Phishing is one of the most common cyber threats faced by students because email, banking apps, and university systems are frequently targeted.
-''';
-
-      case 'password':
-        return '''
-Strong passwords are essential to protect personal, academic, and financial accounts from unauthorized access.
-
-Good password practices:
-• Use at least 8 to 12 characters
-• Combine uppercase, lowercase, numbers, and symbols
-• Create unique passwords for different accounts
-• Use a password manager if needed
-
-Unsafe password habits:
-• Reusing the same password on multiple accounts
-• Using your name, birthday, or phone number
-• Sharing passwords with others
-• Saving passwords in plain text files
-
-Why this matters:
-Weak passwords make it easier for attackers to break into accounts, especially when users reuse the same credentials across many platforms.
-''';
-
-      case 'malware':
-        return '''
-Malware refers to harmful software designed to damage systems, steal data, or gain unauthorized access to devices.
-
-Common sources of malware:
-• Downloading apps from untrusted sites
-• Clicking infected attachments or links
-• Installing cracked software or APK files
-• Visiting malicious websites
-
-Protection tips:
-• Only install apps from trusted sources such as Google Play
-• Keep your phone and apps updated
-• Avoid suspicious pop-ups and unknown downloads
-• Use security features already available on your device
-
-Why this matters:
-Students often download files, notes, apps, and software from different sources, which increases the risk of malware infection.
-''';
-
-      case 'privacy':
-        return '''
-Privacy on social media is important because oversharing personal details can expose users to identity theft, scams, stalking, and social engineering.
-
-Examples of risky oversharing:
-• Posting your full address or phone number
-• Sharing real-time location publicly
-• Uploading student ID or important documents
-• Revealing daily routine patterns
-
-How to protect your privacy:
-• Set accounts to private when possible
-• Review privacy settings regularly
-• Limit who can see your posts and stories
-• Avoid sharing sensitive personal or academic information
-
-Why this matters:
-Cybercriminals can use small pieces of public information to build trust, impersonate you, or launch targeted attacks.
-''';
-
-      case 'incident':
-        return '''
-A cyber incident is any suspicious or harmful digital event, such as an account hack, data leak, phishing attempt, or unauthorized login.
-
-Examples:
-• Receiving login alerts you did not trigger
-• Losing access to an account suddenly
-• Finding strange messages sent from your profile
-• Clicking a fake link and entering your password
-
-Immediate response steps:
-• Change your password as soon as possible
-• Log out from other devices if available
-• Report the issue to the relevant authority or administrator
-• Keep evidence such as screenshots or suspicious emails
-
-Why this matters:
-Fast action can reduce damage, stop further misuse, and help protect both the victim and other users.
-''';
-
-      default:
-        return 'Learning content not available.';
-    }
   }
 }
