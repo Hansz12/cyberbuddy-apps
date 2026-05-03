@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -120,6 +121,7 @@ class AppCubit extends Cubit<AppState> {
 
   Future<void> saveToStorage() async {
     await StorageService.save('activeUid', FirestoreService.currentUid ?? '');
+
     await StorageService.save('name', state.user.name);
     await StorageService.save('programme', state.user.programme);
     await StorageService.save('level', state.user.level);
@@ -242,13 +244,16 @@ class AppCubit extends Cubit<AppState> {
           ),
           points: (merged['points'] as num?)?.toInt() ?? 0,
           streak: (merged['streak'] as num?)?.toInt() ?? 0,
-          completedModuleIds: _decodeStringList(merged['completedModuleIds']),
+          completedModuleIds:
+          _decodeStringList(merged['completedModuleIds']),
           weakTopics: _decodeStringList(merged['weakTopics']),
           hasTakenPreTest: merged['hasTakenPreTest'] == true,
           preTestScore: (merged['preTestScore'] as num?)?.toInt() ?? 0,
           postTestScore: (merged['postTestScore'] as num?)?.toInt() ?? 0,
-          topicCorrectAnswers: _decodeIntMap(merged['topicCorrectAnswers']),
-          topicWrongAnswers: _decodeIntMap(merged['topicWrongAnswers']),
+          topicCorrectAnswers:
+          _decodeIntMap(merged['topicCorrectAnswers']),
+          topicWrongAnswers:
+          _decodeIntMap(merged['topicWrongAnswers']),
           lastLearningDate: merged['lastLearningDate']?.toString() ?? '',
           isLoaded: false,
         ),
@@ -353,7 +358,11 @@ class AppCubit extends Cubit<AppState> {
   }
 
   Future<void> completePostTest(int score) async {
-    emit(state.copyWith(postTestScore: score));
+    emit(
+      state.copyWith(
+        postTestScore: score,
+      ),
+    );
 
     await saveToStorage();
     await syncProgressToCloud();
@@ -374,7 +383,8 @@ class AppCubit extends Cubit<AppState> {
     return 'High Risk';
   }
 
-  String get preTestAwarenessLevel => classifyAwarenessLevel(state.preTestScore);
+  String get preTestAwarenessLevel =>
+      classifyAwarenessLevel(state.preTestScore);
 
   String get postTestAwarenessLevel => state.postTestScore > 0
       ? classifyAwarenessLevel(state.postTestScore)
@@ -556,60 +566,91 @@ class AppCubit extends Cubit<AppState> {
     await syncProgressToCloud();
   }
 
-  int scoreModule(LearningModule module) {
-    int score = 0;
+  List<String> get _recommendationTopics => const [
+    'phishing',
+    'password',
+    'malware',
+    'privacy',
+    'incident',
+  ];
 
-    if (state.user.interests.any((interest) => module.tags.contains(interest))) {
-      score += 5;
+  double cosineSimilarity(List<int> a, List<int> b) {
+    int dot = 0;
+    int magA = 0;
+    int magB = 0;
+
+    for (int i = 0; i < a.length; i++) {
+      dot += a[i] * b[i];
+      magA += a[i] * a[i];
+      magB += b[i] * b[i];
     }
 
-    if (state.weakTopics.contains(module.id)) {
-      score += 6;
-    }
+    if (magA == 0 || magB == 0) return 0;
 
-    if (state.user.level == module.difficulty) {
-      score += 2;
-    }
+    return dot / (sqrt(magA) * sqrt(magB));
+  }
 
-    if (state.user.level == 'Beginner' && module.difficulty == 'Beginner') {
-      score += 1;
-    }
+  List<int> userVector() {
+    return _recommendationTopics.map((topic) {
+      final interestMatch = state.user.interests.contains(topic);
+      final weakMatch = state.weakTopics.contains(topic);
+      return interestMatch || weakMatch ? 1 : 0;
+    }).toList();
+  }
+
+  List<int> moduleVector(LearningModule module) {
+    return _recommendationTopics.map((topic) {
+      return module.tags.contains(topic) || module.id == topic ? 1 : 0;
+    }).toList();
+  }
+
+  double recommendationScore(LearningModule module) {
+    double score = 0;
+
+    if (state.weakTopics.contains(module.id)) score += 10;
+    if (state.user.interests.any((i) => module.tags.contains(i))) score += 5;
+    if (state.user.level == module.difficulty) score += 2;
+    if (!state.completedModuleIds.contains(module.id)) score += 3;
+
+    final similarity = cosineSimilarity(userVector(), moduleVector(module));
+    score += similarity * 5;
 
     return score;
   }
 
+  int scoreModule(LearningModule module) {
+    return recommendationScore(module).round();
+  }
+
   List<LearningModule> get recommendedModules {
     final sorted = List<LearningModule>.from(state.modules)
-      ..sort((a, b) => scoreModule(b).compareTo(scoreModule(a)));
+      ..sort((a, b) => recommendationScore(b).compareTo(
+        recommendationScore(a),
+      ));
+
     return sorted.take(3).toList();
   }
 
   String getRecommendationReason(LearningModule module) {
-    final reasons = <String>[];
+    final similarity = cosineSimilarity(userVector(), moduleVector(module));
 
     if (state.weakTopics.contains(module.id)) {
-      reasons.add('your weak topic');
+      return 'Recommended because this is your weak cybersecurity topic.';
     }
 
-    if (state.user.interests.any((interest) => module.tags.contains(interest))) {
-      reasons.add('your interests');
+    if (state.user.interests.any((i) => module.tags.contains(i))) {
+      return 'Recommended because it matches your selected interests.';
     }
 
-    if (state.user.level == module.difficulty ||
-        (state.user.level == 'Beginner' && module.difficulty == 'Beginner')) {
-      reasons.add('your learning level');
+    if (similarity > 0) {
+      return 'Recommended using cosine similarity based on your learning profile.';
     }
 
-    if (reasons.isEmpty) {
-      return 'Recommended based on your overall learning profile.';
+    if (state.user.level == module.difficulty) {
+      return 'Recommended because it matches your learning level.';
     }
 
-    if (reasons.length == 1) {
-      return 'Recommended because it matches ${reasons.first}.';
-    }
-
-    final last = reasons.removeLast();
-    return 'Recommended because it matches ${reasons.join(', ')} and $last.';
+    return 'Recommended based on your overall cybersecurity learning profile.';
   }
 
   void _refreshBadges() {
@@ -624,8 +665,8 @@ class AppCubit extends Cubit<AppState> {
           unlocked = totalCompletedModules >= 3;
           break;
         case 'Security Master':
-          unlocked =
-              totalCompletedModules >= state.modules.length && state.modules.isNotEmpty;
+          unlocked = totalCompletedModules >= state.modules.length &&
+              state.modules.isNotEmpty;
           break;
         case 'Phishing Spotter':
           unlocked = state.completedModuleIds.contains('phishing');

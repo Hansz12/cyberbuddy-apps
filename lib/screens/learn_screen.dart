@@ -23,22 +23,20 @@ class LearnScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               children: [
                 const Text(
-                  'Learning Modules',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  'Cyber Missions',
+                  style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'Choose a cybersecurity topic, complete the lesson, and answer the quiz.',
+                  'Complete cybersecurity missions, unlock XP, and take challenge quizzes.',
                   style: TextStyle(color: Colors.grey, height: 1.4),
                 ),
                 const SizedBox(height: 16),
+
                 TextField(
                   onChanged: cubit.updateSearch,
                   decoration: InputDecoration(
-                    hintText: 'Search modules, topics, or content...',
+                    hintText: 'Search cyber missions...',
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
                     fillColor: Colors.white,
@@ -48,15 +46,17 @@ class LearnScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 16),
+
                 Row(
                   children: [
                     Expanded(
                       child: _summaryCard(
-                        title: 'Completed',
+                        title: 'Missions Done',
                         value:
                         '${cubit.totalCompletedModules}/${state.modules.length}',
-                        icon: Icons.check_circle_outline,
+                        icon: Icons.flag_outlined,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -69,7 +69,9 @@ class LearnScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 16),
+
                 if (modules.isEmpty)
                   _emptyState()
                 else
@@ -80,7 +82,6 @@ class LearnScreen extends StatelessWidget {
                       weakTopic: state.weakTopics.contains(module.id),
                       onTap: () async {
                         final appCubit = context.read<AppCubit>();
-
                         await appCubit.openModule(module);
 
                         if (!context.mounted) return;
@@ -111,9 +112,7 @@ class LearnScreen extends StatelessWidget {
     required IconData icon,
   }) {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(22),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       child: Padding(
         padding: const EdgeInsets.all(15),
         child: Row(
@@ -147,9 +146,7 @@ class LearnScreen extends StatelessWidget {
 
   Widget _emptyState() {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       child: const Padding(
         padding: EdgeInsets.all(24),
         child: Column(
@@ -157,12 +154,12 @@ class LearnScreen extends StatelessWidget {
             Icon(Icons.search_off, size: 42, color: Colors.indigo),
             SizedBox(height: 12),
             Text(
-              'No modules found',
+              'No cyber missions found',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
             ),
             SizedBox(height: 8),
             Text(
-              'Try another keyword or pull down to refresh modules from Firestore.',
+              'Try another keyword or pull down to refresh missions from Firestore.',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey, height: 1.4),
             ),

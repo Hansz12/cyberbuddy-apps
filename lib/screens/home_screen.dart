@@ -15,14 +15,19 @@ class HomeScreen extends StatelessWidget {
       BuildContext context,
       LearningModule module,
       ) async {
-    await context.read<AppCubit>().openModule(module);
+    final cubit = context.read<AppCubit>();
+
+    await cubit.openModule(module);
 
     if (!context.mounted) return;
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => const ModuleDetailScreen(),
+        builder: (_) => BlocProvider.value(
+          value: cubit,
+          child: const ModuleDetailScreen(),
+        ),
       ),
     );
   }
@@ -49,13 +54,13 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 InfoCard(
-                  title: 'Learning Progress',
-                  subtitle: 'Your module completion overview',
+                  title: 'Mission Progress',
+                  subtitle: 'Track your cybersecurity mission completion',
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _progressHeader(
-                        '$completedCount/$totalModules modules completed',
+                        '$completedCount/$totalModules cyber missions completed',
                         '${(completionRate * 100).toStringAsFixed(0)}%',
                       ),
                       const SizedBox(height: 10),
@@ -68,15 +73,15 @@ class HomeScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 18),
                       _progressHeader(
-                        'Level Progress',
-                        '${cubit.remainingToNextLevel} pts to next level',
+                        'XP Level Progress',
+                        '${cubit.remainingToNextLevel} XP to next level',
                       ),
                       const SizedBox(height: 10),
                       LinearProgressIndicator(
                         value: cubit.levelProgress,
                         minHeight: 10,
                         borderRadius: BorderRadius.circular(20),
-                        color: Colors.indigo,
+                        color: Colors.deepPurple,
                         backgroundColor: Colors.grey.shade300,
                       ),
                     ],
@@ -86,29 +91,29 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 InfoCard(
-                  title: 'Learning Evaluation',
-                  subtitle: 'Pre-test and post-test performance',
+                  title: 'Awareness Evaluation',
+                  subtitle: 'Baseline and final cybersecurity awareness result',
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionLabel('Baseline Assessment'),
+                      _sectionLabel('Placement Test'),
                       _metricRow(
                         icon: Icons.assignment_outlined,
-                        label: 'Pre-Test Score',
+                        label: 'Placement Score',
                         value: '${state.preTestScore}%',
                       ),
                       _metricRow(
                         icon: Icons.psychology_outlined,
-                        label: 'Pre-Test Awareness',
+                        label: 'Initial Awareness',
                         value: cubit.preTestAwarenessLevel,
                       ),
                       _metricRow(
                         icon: Icons.security_outlined,
-                        label: 'Pre-Test Risk',
+                        label: 'Initial Risk Level',
                         value: cubit.preTestRiskLevel,
                       ),
                       const SizedBox(height: 10),
-                      _sectionLabel('Final Assessment'),
+                      _sectionLabel('Final Challenge'),
                       _metricRow(
                         icon: Icons.fact_check_outlined,
                         label: 'Post-Test Score',
@@ -117,7 +122,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                       _metricRow(
                         icon: Icons.insights_outlined,
-                        label: 'Post-Test Awareness',
+                        label: 'Final Awareness',
                         value: hasPostTest
                             ? cubit.postTestAwarenessLevel
                             : 'Not available',
@@ -150,13 +155,18 @@ class HomeScreen extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => const PostTestScreen(),
+                                builder: (_) => BlocProvider.value(
+                                  value: context.read<AppCubit>(),
+                                  child: const PostTestScreen(),
+                                ),
                               ),
                             );
                           },
                           icon: const Icon(Icons.fact_check_outlined),
                           label: Text(
-                            hasPostTest ? 'Retake Post-Test' : 'Take Post-Test',
+                            hasPostTest
+                                ? 'Retake Final Challenge'
+                                : 'Take Final Challenge',
                           ),
                           style: FilledButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 15),
@@ -176,18 +186,37 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     const Expanded(
                       child: Text(
-                        'Recommended for You',
+                        'Smart Recommendations',
                         style: TextStyle(
                           fontSize: 19,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                    Text(
-                      '${recommended.length} modules',
-                      style: const TextStyle(color: Colors.grey),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.indigo.shade50,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        'Cosine-based',
+                        style: TextStyle(
+                          color: Colors.indigo,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Personalized cyber missions based on your interests, weak topics, and learning profile.',
+                  style: TextStyle(color: Colors.grey, height: 1.4),
                 ),
                 const SizedBox(height: 12),
 
@@ -205,22 +234,25 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 16),
 
                 InfoCard(
-                  title: 'Daily Quest',
-                  subtitle: 'Complete today’s cybersecurity task',
+                  title: 'Daily Quests',
+                  subtitle: 'Complete today’s tasks to keep your streak alive',
                   child: Column(
                     children: [
                       _questItem(
-                        title: 'Complete one learning module',
+                        title: 'Complete 1 cyber mission',
+                        reward: '+50 XP',
                         done: state.completedModuleIds.isNotEmpty,
                       ),
                       const SizedBox(height: 10),
                       _questItem(
-                        title: 'Answer at least one quiz',
-                        done: cubit.totalQuizAnswered > 0,
+                        title: 'Answer at least 3 challenge questions',
+                        reward: '+20 XP',
+                        done: cubit.totalQuizAnswered >= 3,
                       ),
                       const SizedBox(height: 10),
                       _questItem(
-                        title: 'Maintain your streak',
+                        title: 'Maintain your learning streak',
+                        reward: 'Streak',
                         done: state.streak > 0,
                       ),
                     ],
@@ -235,8 +267,8 @@ class HomeScreen extends StatelessWidget {
                     onPressed: () {
                       context.read<AppCubit>().changeTab(1);
                     },
-                    icon: const Icon(Icons.menu_book_outlined),
-                    label: const Text('Continue Learning'),
+                    icon: const Icon(Icons.flag_outlined),
+                    label: const Text('Continue Cyber Missions'),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -275,25 +307,46 @@ class HomeScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Welcome back,',
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.75),
-              fontSize: 15,
-            ),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: Colors.white.withOpacity(0.18),
+                child: const Icon(
+                  Icons.shield_outlined,
+                  color: Colors.white,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Cyber Defender',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.75),
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      state.user.name,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 27,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
-            state.user.name,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 29,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            cubit.preTestAwarenessLevel,
+            '${cubit.preTestAwarenessLevel} • ${state.user.level}',
             style: TextStyle(
               color: Colors.white.withOpacity(0.75),
               fontWeight: FontWeight.w500,
@@ -304,15 +357,15 @@ class HomeScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: _heroStat(
-                  label: 'Points',
+                  label: 'XP',
                   value: '${state.points}',
-                  icon: Icons.star_border,
+                  icon: Icons.bolt_outlined,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: _heroStat(
-                  label: 'Level',
+                  label: 'Rank',
                   value: 'Lv ${cubit.level + 1}',
                   icon: Icons.trending_up,
                 ),
@@ -447,6 +500,10 @@ class HomeScreen extends StatelessWidget {
       LearningModule module,
       ) {
     final completed = cubit.state.completedModuleIds.contains(module.id);
+    final similarity =
+    (cubit.cosineSimilarity(cubit.userVector(), cubit.moduleVector(module)) *
+        100)
+        .toStringAsFixed(0);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -467,7 +524,7 @@ class HomeScreen extends StatelessWidget {
                     ? Colors.green.shade50
                     : Colors.indigo.shade50,
                 child: Icon(
-                  completed ? Icons.check_circle_outline : module.icon,
+                  completed ? Icons.check_circle_outline : Icons.psychology,
                   color: completed ? Colors.green : Colors.indigo,
                 ),
               ),
@@ -498,7 +555,8 @@ class HomeScreen extends StatelessWidget {
                       children: [
                         _smallChip(module.difficulty),
                         _smallChip(module.duration),
-                        _smallChip('${module.points} pts'),
+                        _smallChip('${module.points} XP'),
+                        _smallChip('$similarity% match'),
                         if (completed) _smallChip('Completed'),
                       ],
                     ),
@@ -514,19 +572,32 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget _smallChip(String text) {
-    final isCompleted = text.toLowerCase() == 'completed';
+    final lower = text.toLowerCase();
+    final isCompleted = lower == 'completed';
+    final isMatch = lower.contains('match');
+
+    Color bg = Colors.indigo.shade50;
+    Color fg = Colors.indigo.shade700;
+
+    if (isCompleted) {
+      bg = Colors.green.shade50;
+      fg = Colors.green.shade700;
+    } else if (isMatch) {
+      bg = Colors.deepPurple.shade50;
+      fg = Colors.deepPurple.shade700;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: isCompleted ? Colors.green.shade50 : Colors.indigo.shade50,
+        color: bg,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         text,
         style: TextStyle(
           fontSize: 12,
-          color: isCompleted ? Colors.green.shade700 : Colors.indigo.shade700,
+          color: fg,
           fontWeight: FontWeight.w600,
         ),
       ),
@@ -535,19 +606,49 @@ class HomeScreen extends StatelessWidget {
 
   Widget _questItem({
     required String title,
+    required String reward,
     required bool done,
   }) {
-    return Row(
-      children: [
-        Icon(
-          done ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: done ? Colors.green : Colors.grey,
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: done ? Colors.green.shade50 : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: done ? Colors.green.shade200 : Colors.grey.shade300,
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(title),
-        ),
-      ],
+      ),
+      child: Row(
+        children: [
+          Icon(
+            done ? Icons.check_circle : Icons.radio_button_unchecked,
+            color: done ? Colors.green : Colors.grey,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              reward,
+              style: TextStyle(
+                color: Colors.amber.shade900,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -564,7 +665,7 @@ class HomeScreen extends StatelessWidget {
             SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Complete your profile and quiz activity to receive personalized recommendations.',
+                'Complete your profile and challenge activity to receive personalized smart recommendations.',
                 style: TextStyle(height: 1.4),
               ),
             ),
